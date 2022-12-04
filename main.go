@@ -4,10 +4,12 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/segmentio/ksuid"
 )
 
 type Movie struct {
 	Title  string   `json:"title"`
+	ID     string   `json:"id"`
 	Genre  []string `json:"genre"`
 	Actors []string `json:"actors"`
 }
@@ -25,7 +27,7 @@ func NewMovieHandler(c *gin.Context) {
 			"error": err.Error()})
 		return
 	}
-
+	movie.ID = ksuid.New().String()
 	movies = append(movies, movie)
 	c.JSON(http.StatusOK, movie)
 }
@@ -35,7 +37,7 @@ func ListMoviesHandler(c *gin.Context) {
 }
 
 func UpdateMovieHandler(c *gin.Context) {
-	id := c.Param("title")
+	id := c.Param("id")
 	var movie Movie
 	if err := c.ShouldBindJSON(&movie); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -44,7 +46,7 @@ func UpdateMovieHandler(c *gin.Context) {
 	}
 	index := -1
 	for i := 0; i < len(movies); i++ {
-		if movies[i].Title == id {
+		if movies[i].ID == id {
 			index = i
 		}
 	}
@@ -58,10 +60,10 @@ func UpdateMovieHandler(c *gin.Context) {
 }
 
 func DeleteMovieHandler(c *gin.Context) {
-	id := c.Param("title")
+	id := c.Param("id")
 	index := -1
 	for i := 0; i < len(movies); i++ {
-		if movies[i].Title == id {
+		if movies[i].ID == id {
 			index = i
 		}
 	}
@@ -79,7 +81,7 @@ func main() {
 	router := gin.Default()
 	router.POST("/movies", NewMovieHandler)
 	router.GET("/movies", ListMoviesHandler)
-	router.PUT("/movies/:title", UpdateMovieHandler)
-	router.DELETE("/movies/:title", DeleteMovieHandler)
+	router.PUT("/movies/:id", UpdateMovieHandler)
+	router.DELETE("/movies/:id", DeleteMovieHandler)
 	router.Run()
 }
